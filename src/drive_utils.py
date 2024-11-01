@@ -9,7 +9,7 @@ from googleapiclient.errors import HttpError
 from ascii import print_logo
 
 # If modifying these scopes, delete the file token.json.
-SCOPES = ["https://www.googleapis.com/auth/drive"]
+SCOPES = ["https://www.googleapis.com/auth/drive", "https://www.googleapis.com/auth/documents", "https://www.googleapis.com/auth/spreadsheets"]
 
 def login():
   creds = None
@@ -32,12 +32,14 @@ def login():
       token.write(creds.to_json())
 
   try:
-    service = build("drive", "v3", credentials=creds)
-    user_info = service.about().get(fields="user").execute()
+    drive_service = build("drive", "v3", credentials=creds)
+    sheet_service = build("sheets", "v4", credentials=creds)
+    doc_service = build("docs", "v1", credentials=creds)
+    user_info = drive_service.about().get(fields="user").execute()
     print_logo()
     print(f"Kirjauduttu Driveen käyttäjällä {user_info["user"]["displayName"]}, {user_info["user"]["emailAddress"]}\n")
     
-    return service
+    return drive_service, sheet_service, doc_service
 
   except HttpError as error:
     # TODO(developer) - Handle errors from drive API.

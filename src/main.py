@@ -1,13 +1,15 @@
 from drive_utils import login
+from agenda import create_agenda
 
 def start() -> None:
-    service = login()
-    if service == None:
+    try:
+        drive_service, sheet_service, doc_service = login()
+    except:
         print("Kirjautuminen epäonnistui")
         return
     
     print("Tervetuloa KIK:n sihteeribottiin. Valitse toiminto:")
-    print("1. Julkaise tyhjä esityslista.\n2. Julkaise täytetty esityslista.\n3. Siivoa kuulumiskierros.")
+    print("1. Julkaise tyhjä esityslista.\n2. Julkaise valmis esityslista.\n3.Käy pöytäkirja läpi\n4. Siivoa kuulumiskierros.\n")
     
     while True:
         chosen_function = input()
@@ -15,10 +17,10 @@ def start() -> None:
             break
         else:
             print("Tapahtui virhe, kokeile uudestaan:")
-    
+
     if chosen_function == "1":
-        ...
-        #create_agenda()
+        create_agenda(drive_service, sheet_service, doc_service)
+        
     elif chosen_function == "2":
         ...
         #publish_agenda()
