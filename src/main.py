@@ -1,4 +1,11 @@
+from drive_utils import login
+
 def start() -> None:
+    service = login()
+    if service == None:
+        print("Kirjautuminen epäonnistui")
+        return
+    
     print("Tervetuloa KIK:n sihteeribottiin. Valitse toiminto:")
     print("1. Julkaise tyhjä esityslista.\n2. Julkaise täytetty esityslista.\n3. Siivoa kuulumiskierros.")
     
