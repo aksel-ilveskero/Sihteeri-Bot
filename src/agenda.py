@@ -143,15 +143,13 @@ def create_agenda(drive_service, sheet_service, doc_service) -> int:
         {'replaceAllText': {'replaceText': f"{meeting_week+1} {next_week_dates} ovat {next_week_cleaner[0]} ja {next_week_cleaner[1]}.", "containsText": {"text": "&Tuleva siivousvuoro&", "matchCase": False}}},
     ]
 
-    # Estyneisyys
+    # Asking further questions
     if inhibited == True:
         requests.append({'replaceAllText': {'replaceText': f"Estyneisyydestä ovat ilmoittaneet …", "containsText": {"text": "&Estyneisyys&", "matchCase": False}}})
     else:
         requests.append({'replaceAllText': {'replaceText': f"Estyneisyydestä ei tarvinnut ilmoittaa.", "containsText": {"text": "&Estyneisyys&", "matchCase": False}}})
 
-    # Pöytäkirjan tarkastus
     proceedings_text = ""
-
     if check_proceedings == True:
         proceedings_text += f"Tarkastetaan kokouksen {meeting_number-1}/2025 pöytäkirja.\n"
 
@@ -162,24 +160,17 @@ def create_agenda(drive_service, sheet_service, doc_service) -> int:
     
     requests.append({'replaceAllText': {'replaceText': proceedings_text, "containsText": {"text": "&Pöytäkirjan tarkastus&", "matchCase": False}}})
 
+    # Execute the replace command for the agenda
     document = (
         doc_service.documents()
         .batchUpdate(documentId=agenda_id, body={'requests': requests})
         .execute()
     )
 
+    # Publish the agenda
     print("Julkaistaan pöytäkirja tiedotukseen...")
     document_link = f"https://docs.google.com/document/d/{document["documentId"]}"
     asyncio.run(publish_empty_agenda(document_link, None, meeting_number, meeting_date, meeting_time))
-
-    
-    
-    
-    
-    
-    
-    
-    
     
     print("Valmista!")
     return 1
