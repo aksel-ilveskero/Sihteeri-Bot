@@ -121,15 +121,18 @@ def create_agenda(drive_service, sheet_service, doc_service):
     else:
         requests.append({'replaceAllText': {'replaceText': f"Estyneisyydestä ei tarvinnut ilmoittaa.", "containsText": {"text": "&Estyneisyys&", "matchCase": False}}})
 
-    # Edellisen pöytäkirjan tarkastus
+    # Pöytäkirjan tarkastus
+    proceedings_text = ""
+
     if check_proceedings == True:
-        requests.append({'replaceAllText': {'replaceText': f"Tarkastetaan kokouksen {meeting_number-1}/2025 pöytäkirja.", "containsText": {"text": "&Edellinen pöytäkirja&", "matchCase": False}}})
-    
-    # Tämän pöytäkirjan tarkastus
+        proceedings_text += f"Tarkastetaan kokouksen {meeting_number-1}/2025 pöytäkirja.\n"
+
     if check_later == True:
-        requests.append({'replaceAllText': {'replaceText': f"Tämä pöytäkirja tarkastetaan kokouksessa {meeting_number+1}/2025.", "containsText": {"text": "&Pöytäkirjan tarkastus&", "matchCase": False}}})
+        proceedings_text += f"Tämä pöytäkirja tarkastetaan kokouksessa {meeting_number+1}/2025."
     else:
-        requests.append({'replaceAllText': {'replaceText': f"Valitaan kokoukselle pöytäkirjan tarkastajat.", "containsText": {"text": "&Pöytäkirjan tarkastus&", "matchCase": False}}})
+        proceedings_text += f"Valitaan kokoukselle pöytäkirjan tarkastajat."
+    
+    requests.append({'replaceAllText': {'replaceText': proceedings_text, "containsText": {"text": "&Pöytäkirjan tarkastus&", "matchCase": False}}})
 
     document = (
         doc_service.documents()

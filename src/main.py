@@ -8,11 +8,11 @@ def start() -> None:
         print("Kirjautuminen epäonnistui")
         return
     
-    print("Tervetuloa KIK:n sihteeribottiin. Valitse toiminto:")
-    print("1. Julkaise tyhjä esityslista.\n2. Julkaise valmis esityslista.\n3.Käy pöytäkirja läpi\n4. Siivoa kuulumiskierros.\n")
+    print("Tervetuloa KIK:n sihteeribottiin.")
+    print("1. Julkaise tyhjä esityslista.\n2. Julkaise valmis esityslista.\n3. Käy pöytäkirja läpi\n4. Siivoa kuulumiskierros.\n")
     
     while True:
-        chosen_function = input()
+        chosen_function = input("Valitse toiminto: ")
         if chosen_function == "1" or chosen_function == "2" or chosen_function == "3":
             break
         else:
