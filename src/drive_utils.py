@@ -3,7 +3,7 @@ import os.path
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
+from googleapiclient.discovery import build, Resource
 from googleapiclient.errors import HttpError
 
 from ascii import print_logo
@@ -11,7 +11,7 @@ from ascii import print_logo
 # If modifying these scopes, delete the file token.json.
 SCOPES = ["https://www.googleapis.com/auth/drive", "https://www.googleapis.com/auth/documents", "https://www.googleapis.com/auth/spreadsheets"]
 
-def login():
+def login() -> Resource:
   creds = None
   # The file token.json stores the user's access and refresh tokens, and is
   # created automatically when the authorization flow completes for the first
@@ -38,6 +38,8 @@ def login():
     user_info = drive_service.about().get(fields="user").execute()
     print_logo()
     print(f"Kirjauduttu Driveen käyttäjällä {user_info["user"]["displayName"]}, {user_info["user"]["emailAddress"]}\n")
+
+    print(type(drive_service))
     
     return drive_service, sheet_service, doc_service
 
@@ -46,7 +48,6 @@ def login():
     print(f"An error occurred: {error}")
 
     return None
-
 
 if __name__ == "__main__":
   login()

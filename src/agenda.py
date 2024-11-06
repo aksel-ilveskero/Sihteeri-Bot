@@ -1,14 +1,40 @@
 import datetime
+import time
+import asyncio
+
+from tg_bot import publish_empty_agenda
 
 def cleaning_date(week):
-    # Returns start and end date of week in brackets
+    """Returns start and end date of week in brackets
+
+    Args:
+        week (_int_): Week number
+
+    Returns:
+        str: Date range
+    """
+    
     first_day = datetime.datetime.strptime(f'2025-W{int(week)-1}-2', "%Y-W%W-%w").date()
     last_day = first_day + datetime.timedelta(days=6.9)
 
     return f"({first_day.strftime("%d.%m.")} - {last_day.strftime("%d.%m.")})"
     
-def create_agenda(drive_service, sheet_service, doc_service):
-    # Get week number for next meeting
+
+def create_agenda(drive_service, sheet_service, doc_service) -> int:
+    """Creates new agenda in drive and publishes it in Telegram
+
+    Args:
+        drive_service (_Resource_): Google API service for accessing drive files
+        sheet_service (_Resource_): Google API service for accessing spreadsheets
+        doc_service (_Resource_): Google API service for accessing docs files
+
+    Raises:
+        ValueError: If an agenda with the same name already exists
+
+    Returns:
+        result (_int_): Result code
+    """
+
     current_week = datetime.date.today().isocalendar().week
     meeting_week = current_week + 1
     
@@ -37,7 +63,9 @@ def create_agenda(drive_service, sheet_service, doc_service):
     next_week_dates = cleaning_date(meeting_week+1)
 
     # New agenda filename:
-    filename = f"Esityslista {meeting_number}/2025"
+    #filename = f"Esityslista {meeting_number}/2025"
+    filename = f"Esityslista {time.time()}/2025"
+    
     print(f"Luodaan tiedosto {filename}:\n")
 
     # Check if file already exists:
@@ -140,6 +168,18 @@ def create_agenda(drive_service, sheet_service, doc_service):
         .execute()
     )
 
-    # Jos check_proceedings == False, poista kohta 5A
+    print("Julkaistaan pöytäkirja tiedotukseen...")
+    document_link = f"https://docs.google.com/document/d/{document["documentId"]}"
+    asyncio.run(publish_empty_agenda(document_link, None, meeting_number, meeting_date, meeting_time))
 
+    
+    
+    
+    
+    
+    
+    
+    
+    
     print("Valmista!")
+    return 1
