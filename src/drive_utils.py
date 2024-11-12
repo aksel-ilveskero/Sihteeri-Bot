@@ -31,23 +31,16 @@ def login() -> Resource:
     with open("credentials/token.json", "w") as token:
       token.write(creds.to_json())
 
-  try:
-    drive_service = build("drive", "v3", credentials=creds)
-    sheet_service = build("sheets", "v4", credentials=creds)
-    doc_service = build("docs", "v1", credentials=creds)
-    user_info = drive_service.about().get(fields="user").execute()
-    print_logo()
-    print(f"Kirjauduttu Driveen käyttäjällä {user_info["user"]["displayName"]}, {user_info["user"]["emailAddress"]}\n")
+  drive_service = build("drive", "v3", credentials=creds)
+  sheet_service = build("sheets", "v4", credentials=creds)
+  doc_service = build("docs", "v1", credentials=creds)
+  user_info = drive_service.about().get(fields="user").execute()
+  print_logo()
+  print(f"Kirjauduttu Driveen käyttäjällä {user_info['user']['displayName']}, {user_info['user']['emailAddress']}\n")
 
-    print(type(drive_service))
-    
-    return drive_service, sheet_service, doc_service
-
-  except HttpError as error:
-    # TODO(developer) - Handle errors from drive API.
-    print(f"An error occurred: {error}")
-
-    return None
+  print(type(drive_service))
+  
+  return drive_service, sheet_service, doc_service
 
 if __name__ == "__main__":
   login()

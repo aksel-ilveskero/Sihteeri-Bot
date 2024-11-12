@@ -17,7 +17,7 @@ def cleaning_date(week):
     first_day = datetime.datetime.strptime(f'2025-W{int(week)-1}-2', "%Y-W%W-%w").date()
     last_day = first_day + datetime.timedelta(days=6.9)
 
-    return f"({first_day.strftime("%d.%m.")} - {last_day.strftime("%d.%m.")})"
+    return f"({first_day.strftime('%d.%m.')} - {last_day.strftime('%d.%m.')})"
     
 
 def create_agenda(drive_service, sheet_service, doc_service) -> int:
@@ -169,7 +169,7 @@ def create_agenda(drive_service, sheet_service, doc_service) -> int:
 
     # Publish the agenda
     print("Julkaistaan pöytäkirja tiedotukseen...")
-    document_link = f"https://docs.google.com/document/d/{document["documentId"]}"
+    document_link = f"https://docs.google.com/document/d/{document['documentId']}"
     asyncio.run(publish_empty_agenda(document_link, None, meeting_number, meeting_date, meeting_time))
     
     print("Valmista!")

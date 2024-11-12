@@ -2,11 +2,8 @@ from drive_utils import login
 from agenda import create_agenda
 
 def start() -> None:
-    try:
-        drive_service, sheet_service, doc_service = login()
-    except:
-        print("Kirjautuminen epäonnistui")
-        return
+        
+    drive_service, sheet_service, doc_service = login()
     
     print("Tervetuloa KIK:n sihteeribottiin.")
     print("1. Julkaise tyhjä esityslista.\n2. Julkaise valmis esityslista.\n3. Käy pöytäkirja läpi\n4. Siivoa kuulumiskierros.\n")
