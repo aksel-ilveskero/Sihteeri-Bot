@@ -37,6 +37,7 @@ def create_agenda(drive_service, sheet_service, doc_service) -> int:
 
     current_week = datetime.date.today().isocalendar().week
     meeting_week = current_week + 1
+    no_cleaning_next_week = False
     
     # Get meeting information from spreadsheet
     info_sheet = sheet_service.spreadsheets()
@@ -49,7 +50,11 @@ def create_agenda(drive_service, sheet_service, doc_service) -> int:
 
     # Get meeting information corresponding to week number
     next_meeting_data = next(data_list for data_list in meeting_info if data_list[0] == str(meeting_week))
-    next_week_cleaner_data = next(data_list for data_list in meeting_info if data_list[0] == str(meeting_week+1))
+    
+    try:
+        next_week_cleaner_data = next((data_list for data_list in meeting_info if data_list[0] == str(meeting_week+1)))
+    except:
+        no_cleaning_next_week = True
     
     meeting_number = int(next_meeting_data[1])
     meeting_date = next_meeting_data[2]
@@ -59,8 +64,9 @@ def create_agenda(drive_service, sheet_service, doc_service) -> int:
     current_cleaner = [next_meeting_data[5], next_meeting_data[6]]
     current_week_dates = cleaning_date(meeting_week)
 
-    next_week_cleaner = [next_week_cleaner_data[5], next_week_cleaner_data[6]]
-    next_week_dates = cleaning_date(meeting_week+1)
+    if no_cleaning_next_week == False:
+        next_week_cleaner = [next_week_cleaner_data[5], next_week_cleaner_data[6]]
+        next_week_dates = cleaning_date(meeting_week+1)
 
     # New agenda filename:
     #filename = f"Esityslista {meeting_number}/2025"
@@ -83,7 +89,8 @@ def create_agenda(drive_service, sheet_service, doc_service) -> int:
     print(f"Kokouksen päivämäärä ja aika: {meeting_date} klo {meeting_time}")
     print(f"Kokouspaikka: {meeting_location}")
     print(f"Tulevat siivoajat: {current_cleaner[0]} ja {current_cleaner[1]}")
-    print(f"Sitä seuraavat siivoajat: {next_week_cleaner[0]} ja {next_week_cleaner[1]}")
+    if no_cleaning_next_week == False:
+        print(f"Sitä seuraavat siivoajat: {next_week_cleaner[0]} ja {next_week_cleaner[1]}")
     print()
     info_correct = input("Onko tiedot oikein? (Y/N):\n")
 
@@ -139,9 +146,12 @@ def create_agenda(drive_service, sheet_service, doc_service) -> int:
         {'replaceAllText': {'replaceText': f"{meeting_number}/2025", "containsText": {"text": "&Kokousnumero&", "matchCase": False}}},
         {'replaceAllText': {'replaceText': f"ti {meeting_date} klo {meeting_time}", "containsText": {"text": "&Aika&", "matchCase": False}}},
         {'replaceAllText': {'replaceText': f"{meeting_location}", "containsText": {"text": "&Paikka&", "matchCase": False}}},
-        {'replaceAllText': {'replaceText': f"{meeting_week} {current_week_dates} ovat {current_cleaner[0]} ja {current_cleaner[1]}.", "containsText": {"text": "&Siivousvuoro&", "matchCase": False}}},
-        {'replaceAllText': {'replaceText': f"{meeting_week+1} {next_week_dates} ovat {next_week_cleaner[0]} ja {next_week_cleaner[1]}.", "containsText": {"text": "&Tuleva siivousvuoro&", "matchCase": False}}},
+        {'replaceAllText': {'replaceText': f"{meeting_week} {current_week_dates} ovat {current_cleaner[0]} ja {current_cleaner[1]}.", "containsText": {"text": "&Siivousvuoro&", "matchCase": False}}}
     ]
+    if no_cleaning_next_week == False:
+        requests.append({'replaceAllText': {'replaceText': f"{meeting_week+1} {next_week_dates} ovat {next_week_cleaner[0]} ja {next_week_cleaner[1]}.", "containsText": {"text": "&Tuleva siivousvuoro&", "matchCase": False}}})
+    else:
+        requests.append({'replaceAllText': {'replaceText': "", "containsText": {"text": "&Tuleva siivousvuoro&", "matchCase": False}}},)
 
     # Asking further questions
     if inhibited == True:
@@ -167,10 +177,19 @@ def create_agenda(drive_service, sheet_service, doc_service) -> int:
         .execute()
     )
 
+    # Create folder of attahcments
+    folder_metadata = {
+        "name": f"{meeting_number}/2025",
+        "mimeType": "application/vnd.google-apps.folder",
+        "parents": ["19nhbKd1MVysQ0pIIDd89hsyfKOySnVtf"]
+    }
+    attachment_folder = (drive_service.files().create(body=folder_metadata, fields="id").execute())
+    folder_id = attachment_folder.get('id')
+
     # Publish the agenda
     print("Julkaistaan pöytäkirja tiedotukseen...")
     document_link = f"https://docs.google.com/document/d/{document['documentId']}"
-    asyncio.run(publish_empty_agenda(document_link, None, meeting_number, meeting_date, meeting_time))
+    asyncio.run(publish_empty_agenda(document_link, folder_id, meeting_number, meeting_date, meeting_time))
     
     print("Valmista!")
     return 1

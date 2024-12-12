@@ -37,8 +37,6 @@ def login() -> Resource:
   user_info = drive_service.about().get(fields="user").execute()
   print_logo()
   print(f"Kirjauduttu Driveen käyttäjällä {user_info['user']['displayName']}, {user_info['user']['emailAddress']}\n")
-
-  print(type(drive_service))
   
   return drive_service, sheet_service, doc_service
 
