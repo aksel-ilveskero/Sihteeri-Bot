@@ -1,6 +1,7 @@
 import datetime
 import time
 import asyncio
+import json
 
 from tg_bot import publish_empty_agenda
 
@@ -19,6 +20,28 @@ def cleaning_date(week):
 
     return f"({first_day.strftime('%d.%m.')} - {last_day.strftime('%d.%m.')})"
     
+
+def distribute_agenda_penalties(agenda_contents, sheet_service):
+    num_lines = len(agenda_contents)
+    person_lookup_table = sheet_service.spreadsheets().values().get(spreadsheetId="1-YJpvi8mxBGKeQyMuEk4b_d6F4vIu_2MvsQuCLr3CKU", range="A:G").execute()
+    parse_return = []
+    penalty_list = []
+
+    for i in range(num_lines):
+        try:
+            if "xxx" in agenda_contents[i]["paragraph"]["elements"][0]["textRun"]["content"]:
+                position = agenda_contents[i-1]["paragraph"]["elements"][0]["textRun"]["content"]
+                parse_return.append(position.rstrip("\n"))
+        except:
+            pass
+
+    for pair in person_lookup_table["values"]:
+        if pair[0] in parse_return:
+            for name in pair[1:]:
+                penalty_list.append(name)
+    
+    print(penalty_list) # TO-DO: Lisää näille henkilöille sakot
+
 
 def create_agenda(drive_service, sheet_service, doc_service) -> int:
     """Creates new agenda in drive and publishes it in Telegram
@@ -193,3 +216,37 @@ def create_agenda(drive_service, sheet_service, doc_service) -> int:
     
     print("Valmista!")
     return 1
+
+
+def publish_agenda(drive_service, sheet_service, doc_service) -> int:
+    # Get meeting information from spreadsheet
+    current_week = datetime.date.today().isocalendar().week
+    meeting_week = current_week + 1
+    info_sheet = sheet_service.spreadsheets()
+    sheet_result = (
+        info_sheet.values()
+        .get(spreadsheetId="1nS0NjD0YIfj1OxszkGOaOwHLgRsnkcc3FOExrKlQK5I", range="A:G")
+        .execute()
+    )
+    meeting_info = sheet_result["values"]
+
+    # Get meeting information corresponding to week number
+    next_meeting_data = next(data_list for data_list in meeting_info if data_list[0] == str(meeting_week))
+    meeting_number = int(next_meeting_data[1])
+    
+    # Find id of agenda relating to meeting number
+    agenda_search = drive_service.files().list(fields="files(id, name)", q=f"name = 'Esityslista {meeting_number}/2025' and trashed = false").execute()
+    result = agenda_search.get("files", [])
+    
+    if len(result) > 1:
+        ValueError("Multiple agenda files found!")
+
+    agenda_id = result[0]['id']
+
+    # Get agenda file
+    agenda_doc = doc_service.documents().get(documentId=agenda_id).execute()
+    
+    # Read file contents
+    agenda_contents = agenda_doc["body"]["content"]
+
+    distribute_agenda_penalties(agenda_contents, sheet_service)

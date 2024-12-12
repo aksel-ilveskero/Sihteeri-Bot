@@ -1,5 +1,5 @@
 from drive_utils import login
-from agenda import create_agenda
+from agenda import create_agenda, publish_agenda
 
 def start() -> None:
         
@@ -19,8 +19,8 @@ def start() -> None:
         create_agenda(drive_service, sheet_service, doc_service)
         
     elif chosen_function == "2":
-        ...
-        #publish_agenda()
+        publish_agenda(drive_service, sheet_service, doc_service)
+
     elif chosen_function == "3":
         ...
         #clean_proceedings()

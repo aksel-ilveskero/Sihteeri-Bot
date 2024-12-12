@@ -5,6 +5,5 @@ Tyhjän esityslistan julkaiseminen:
 - Liitekansion linkki
 
 Täytetyn esityslistan julkaiseminen:
-- Läpikäynti, täyttämättömien kohtien etsiminen
 - Sakkokaljojen jako
 - Julkaisu manuaalisen tarkastamisen jälkeen
