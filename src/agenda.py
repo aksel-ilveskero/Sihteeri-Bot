@@ -15,7 +15,7 @@ def cleaning_date(week):
         str: Date range
     """
     
-    first_day = datetime.datetime.strptime(f'2025-W{int(week)-1}-2', "%Y-W%W-%w").date()
+    first_day = datetime.datetime.strptime(f'2025-W{int(week)-1}-1', "%Y-W%W-%w").date()
     last_day = first_day + datetime.timedelta(days=6.9)
 
     return f"({first_day.strftime('%d.%m.')} - {last_day.strftime('%d.%m.')})"
@@ -23,10 +23,14 @@ def cleaning_date(week):
 
 def distribute_agenda_penalties(agenda_contents, sheet_service):
     num_lines = len(agenda_contents)
+
+    # Get person lookup table
     person_lookup_table = sheet_service.spreadsheets().values().get(spreadsheetId="1-YJpvi8mxBGKeQyMuEk4b_d6F4vIu_2MvsQuCLr3CKU", range="A:G").execute()
+
     parse_return = []
     penalty_list = []
 
+    # Find missing information, then add that area to penalty list
     for i in range(num_lines):
         try:
             if "xxx" in agenda_contents[i]["paragraph"]["elements"][0]["textRun"]["content"]:
@@ -35,6 +39,7 @@ def distribute_agenda_penalties(agenda_contents, sheet_service):
         except:
             pass
 
+    # Add responsible persons to penalty list based on missing area
     for pair in person_lookup_table["values"]:
         if pair[0] in parse_return:
             for name in pair[1:]:
@@ -66,7 +71,7 @@ def create_agenda(drive_service, sheet_service, doc_service) -> int:
     info_sheet = sheet_service.spreadsheets()
     sheet_result = (
         info_sheet.values()
-        .get(spreadsheetId="1nS0NjD0YIfj1OxszkGOaOwHLgRsnkcc3FOExrKlQK5I", range="A:G")
+        .get(spreadsheetId="1nS0NjD0YIfj1OxszkGOaOwHLgRsnkcc3FOExrKlQK5I", range="A:H")
         .execute()
     )
     meeting_info = sheet_result["values"]
@@ -85,16 +90,18 @@ def create_agenda(drive_service, sheet_service, doc_service) -> int:
     meeting_location = next_meeting_data[4]
 
     current_cleaner = [next_meeting_data[5], next_meeting_data[6]]
+    if len(next_meeting_data) > 7:
+        current_cleaner.append(next_meeting_data[7])
     current_week_dates = cleaning_date(meeting_week)
 
     if no_cleaning_next_week == False:
         next_week_cleaner = [next_week_cleaner_data[5], next_week_cleaner_data[6]]
+        if len(next_week_cleaner_data) > 7:
+            next_week_cleaner.append(next_week_cleaner_data[7])
         next_week_dates = cleaning_date(meeting_week+1)
 
     # New agenda filename:
-    #filename = f"Esityslista {meeting_number}/2025"
-    filename = f"Esityslista {time.time()}/2025"
-    
+    filename = f"Esityslista {meeting_number}/2025"
     print(f"Luodaan tiedosto {filename}:\n")
 
     # Check if file already exists:
@@ -111,9 +118,9 @@ def create_agenda(drive_service, sheet_service, doc_service) -> int:
     print(f"Kokouksen viikko: {meeting_week}")
     print(f"Kokouksen päivämäärä ja aika: {meeting_date} klo {meeting_time}")
     print(f"Kokouspaikka: {meeting_location}")
-    print(f"Tulevat siivoajat: {current_cleaner[0]} ja {current_cleaner[1]}")
+    print(f"Tulevat siivoajat: {' ja '.join(current_cleaner)}")
     if no_cleaning_next_week == False:
-        print(f"Sitä seuraavat siivoajat: {next_week_cleaner[0]} ja {next_week_cleaner[1]}")
+        print(f"Sitä seuraavat siivoajat: {' ja '.join(next_week_cleaner)}")
     print()
     info_correct = input("Onko tiedot oikein? (Y/N):\n")
 
@@ -212,7 +219,7 @@ def create_agenda(drive_service, sheet_service, doc_service) -> int:
     # Publish the agenda
     print("Julkaistaan pöytäkirja tiedotukseen...")
     document_link = f"https://docs.google.com/document/d/{document['documentId']}"
-    asyncio.run(publish_empty_agenda(document_link, folder_id, meeting_number, meeting_date, meeting_time))
+    asyncio.run(publish_empty_agenda(document_link, folder_id, meeting_number, meeting_date, meeting_time, inhibited))
     
     print("Valmista!")
     return 1
