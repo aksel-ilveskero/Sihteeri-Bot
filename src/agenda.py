@@ -170,6 +170,14 @@ def create_agenda(drive_service, sheet_service, doc_service) -> int:
 
     agenda_id = renamed_file_result["id"]
 
+    # Move file to correct folder
+    print("Siirretään tiedosto oikealle kansioon...")
+    drive_service.files().update(fileId=agenda_id, addParents="1pFHCklXOvA5_WbVJU-7G939jF1V29Q6M", removeParents="10NEk6LRHKlja7h6AoDAry7ChD1snbU-8", supportsAllDrives=True).execute()
+
+    # Set permissions of agenda file
+    print("Asetetaan tiedoston oikeudet...")
+    drive_service.permissions().create(fileId=agenda_id, body={"role": "writer", "type": "anyone"}, supportsAllDrives=True).execute()
+
     # Fill in meeting information:
     print("Täytetään pohja annetuilla tiedoilla...")
     requests = [
@@ -211,10 +219,17 @@ def create_agenda(drive_service, sheet_service, doc_service) -> int:
     folder_metadata = {
         "name": f"{meeting_number}/2025",
         "mimeType": "application/vnd.google-apps.folder",
-        "parents": ["19nhbKd1MVysQ0pIIDd89hsyfKOySnVtf"]
+        "parents": ["1Zs-Ivlk7ixXAiFl6E3AlkhDhc5cB6DaD"]
     }
-    attachment_folder = (drive_service.files().create(body=folder_metadata, fields="id").execute())
+    attachment_folder = (drive_service.files().create(body=folder_metadata, fields="id", supportsAllDrives=True).execute())
     folder_id = attachment_folder.get('id')
+
+    # Ask confirmation before publishing
+    check_input = input("Esityslista on nyt valmis. Julkaistaanko esityslista tiedotukseen? (Y/N):\n")
+    if check_input == 'Y' or check_input == 'y':
+        pass
+    else:
+        return None
 
     # Publish the agenda
     print("Julkaistaan pöytäkirja tiedotukseen...")

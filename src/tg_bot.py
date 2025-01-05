@@ -15,8 +15,8 @@ async def publish_empty_agenda(agenda_link, attachment_folder, meeting_number, m
     if inhibited:
         msg = (
             f"Kokous {meeting_number}/2025\n\n"
-            f"Seuraava kokous on keskiviikkona {meeting_date} klo {meeting_time}.\n\n"
-            f"Esityslista löytyy <a href='{agenda_link}'>täältä</a> ja se tulee täyttää klo 15 mennessä tiistaina. "
+            f"Seuraava kokous on tiistaina {meeting_date} klo {meeting_time}.\n\n"
+            f"Esityslista löytyy <a href='{agenda_link}'>täältä</a> ja se tulee täyttää klo 15 mennessä maanantaina. "
             f"Kokouksessa käytävät liitteet tulee lisätä kansioon "
             f"<a href='https://drive.google.com/drive/u/0/folders/{attachment_folder}'>{meeting_number}/2025</a>.\n\n"
             f"Estyneisyydestä tulee ilmoittaa klo 15 mennessä tiistaina "
@@ -25,11 +25,11 @@ async def publish_empty_agenda(agenda_link, attachment_folder, meeting_number, m
     else:
         msg = (
             f"Kokous {meeting_number}/2025\n\n"
-            f"Seuraava kokous on keskiviikkona {meeting_date} klo {meeting_time}.\n\n"
-            f"Esityslista löytyy <a href='{agenda_link}'>täältä</a> ja se tulee täyttää klo 15 mennessä tiistaina. "
+            f"Seuraava kokous on tiistaina {meeting_date} klo {meeting_time}.\n\n"
+            f"Esityslista löytyy <a href='{agenda_link}'>täältä</a> ja se tulee täyttää klo 15 mennessä maanantaina. "
             f"Kokouksessa käytävät liitteet tulee lisätä kansioon "
             f"<a href='https://drive.google.com/drive/u/0/folders/{attachment_folder}'>{meeting_number}/2025</a>.\n\n"
             f"Estyneisyydestä ei tarvitse ilmoittaa."
         )
     print(msg)
-    await send_message(msg, 2079819344) # -1002461541855
+    await send_message(msg, -1002461541855) # KIKHT25-tiedotus: -1002461541855, vain minä: 2079819344
