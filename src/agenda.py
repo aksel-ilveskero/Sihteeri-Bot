@@ -85,6 +85,12 @@ def create_agenda(drive_service, sheet_service, doc_service) -> int:
         no_cleaning_next_week = True
     
     meeting_number = int(next_meeting_data[1])
+    earlier_meeting_number = meeting_number - 1
+    next_meeting_number = meeting_number + 1
+    meeting_number = str(meeting_number).zfill(2)
+    earlier_meeting_number = str(earlier_meeting_number).zfill(2)
+    next_meeting_number = str(next_meeting_number).zfill(2)
+
     meeting_date = next_meeting_data[2]
     meeting_time = next_meeting_data[3]
     meeting_location = next_meeting_data[4]
@@ -199,10 +205,10 @@ def create_agenda(drive_service, sheet_service, doc_service) -> int:
 
     proceedings_text = ""
     if check_proceedings == True:
-        proceedings_text += f"Tarkastetaan kokouksen {meeting_number-1}/2025 pöytäkirja.\n"
+        proceedings_text += f"Tarkastetaan kokouksen {earlier_meeting_number}/2025 pöytäkirja.\n"
 
     if check_later == True:
-        proceedings_text += f"Tämä pöytäkirja tarkastetaan kokouksessa {meeting_number+1}/2025."
+        proceedings_text += f"Tämä pöytäkirja tarkastetaan kokouksessa {next_meeting_number}/2025."
     else:
         proceedings_text += f"Valitaan kokoukselle pöytäkirjan tarkastajat."
     
