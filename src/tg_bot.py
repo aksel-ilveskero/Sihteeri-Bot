@@ -19,7 +19,7 @@ async def publish_empty_agenda(agenda_link, attachment_folder, meeting_number, m
             f"Esityslista löytyy <a href='{agenda_link}'>täältä</a> ja se tulee täyttää klo 15 mennessä maanantaina. "
             f"Kokouksessa käytävät liitteet tulee lisätä kansioon "
             f"<a href='https://drive.google.com/drive/u/0/folders/{attachment_folder}'>{meeting_number}/2025</a>.\n\n"
-            f"Estyneisyydestä tulee ilmoittaa klo 15 mennessä tiistaina "
+            f"Estyneisyydestä tulee ilmoittaa klo 15 mennessä maanantaina "
             f"<a href='https://forms.gle/sK6JxFYH2m2h33zFA'>tällä lomakkeella</a>."
         )
     else:

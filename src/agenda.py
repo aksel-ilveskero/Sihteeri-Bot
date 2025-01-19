@@ -45,7 +45,163 @@ def distribute_agenda_penalties(agenda_contents, sheet_service):
             for name in pair[1:]:
                 penalty_list.append(name)
     
-    print(penalty_list) # TO-DO: Lisää näille henkilöille sakot
+    # Turn list to dictionary, with key as name and value as number of penalties
+    penalty_dict = {}
+    for name in penalty_list:
+        if name in penalty_dict:
+            penalty_dict[name] += 1
+        else:
+            penalty_dict[name] = 1
+    
+    # Get the corresponing row for every person in the penalty sheet
+    penalty_sheet_id = "1ESoB5X5K67OLtlVpnSbsiWoYUbUVVe1r9--JRB1_BI8"
+    penalty_sheet = sheet_service.spreadsheets()
+    sheet_result = (
+        penalty_sheet.values()
+        .get(spreadsheetId=penalty_sheet_id, range="A:G")
+        .execute()
+    )
+    penalty_info = sheet_result["values"]
+
+    # Ask for confirmation before adding penalties
+    check_str = "Seuraavat henkilöt ovat saamassa sakkoja:\n"
+    for name, count in penalty_dict.items():
+        check_str += f"{name}: {count} sakkoa\n"
+    check_str += "Lisätäänkö sakot? (Y/N)\n"
+    check_input = input(check_str)
+    if check_input == "Y" or check_input == "y":
+        pass
+    else:
+        return None
+
+    # For every name in the penalty list, add their penalty count to the corresponding cell in F column
+    print("Lisätään sakot...")
+    for name, count in penalty_dict.items():
+        # Find index of row where first cell matches name
+        row_index = next((i for i, row in enumerate(penalty_info) if row[0] == name), None)
+        if row_index is not None:
+            # Get current value in B column
+            try:
+                current_value = int(penalty_info[row_index][1])
+            except (IndexError, ValueError):
+                current_value = 0
+                
+            # Update value
+            new_value = current_value + count
+            
+            # Update cell in spreadsheet
+            penalty_sheet.values().update(
+                spreadsheetId=penalty_sheet_id,
+                range=f"B{row_index + 1}",
+                valueInputOption="RAW",
+                body={"values": [[new_value]]}
+            ).execute()
+        
+    print("Sakot lisätty!")
+
+
+def distribute_attendance_penalties(in_attendance, inhibited, sheet_service):
+    # Get list of all KIKHT25 members
+    member_sheet = sheet_service.spreadsheets()
+    sheet_result = (
+        member_sheet.values()
+        .get(spreadsheetId="15Uq97hRNPYEHY04-esWWcTYxnhaUALrFT8IGfmDLX7o", range="A:B")
+        .execute()
+    )
+    member_info = sheet_result["values"]
+
+    # Init list of persos
+    penalty_list = []
+
+    # If person is not in attedance or inhibited, add to list
+    for member in member_info:
+        if member[0] in in_attendance or member[0] in inhibited:
+            continue
+        else:
+            penalty_list.append(member[0])
+    
+    # Deal appropriate number of penalties
+    board_members = ["Valtteri Erkkilä", "Aksel Ilveskero", "Lassi Kortesniemi", "Henri Vilenius", "Eemil Erkkilä", "Anna Passila", "Lauri Vuorjoki", "Nuppu Tikkakoski", "Pessi Fabritius", "Anniina Haka", "Jere Markkinen", "Joonas Keskitalo", "Elia Mäki"]
+
+    penalty_dict = {}
+    for name in penalty_list:
+        if name in board_members:
+            penalty_dict[name] = 6
+        else:
+            penalty_dict[name] = 2
+    
+    # Get the corresponing row for every person in the penalty sheet
+    penalty_sheet_id = "1ESoB5X5K67OLtlVpnSbsiWoYUbUVVe1r9--JRB1_BI8"
+    penalty_sheet = sheet_service.spreadsheets()
+    sheet_result = (
+        penalty_sheet.values()
+        .get(spreadsheetId=penalty_sheet_id, range="A:G")
+        .execute()
+    )
+    penalty_info = sheet_result["values"]
+
+    # Ask for confirmation before adding penalties
+    check_str = "Seuraavat henkilöt ovat saamassa sakkoja:\n"
+    for name, count in penalty_dict.items():
+        check_str += f"{name}: {count} sakkoa\n"
+    check_str += "Lisätäänkö sakot? (Y/N)\n"
+    check_input = input(check_str)
+    if check_input == "Y" or check_input == "y":
+        pass
+    else:
+        return None
+
+    # For every name in the penalty list, add their penalty count to the corresponding cell in F column
+    print("Lisätään sakot...")
+    for name, count in penalty_dict.items():
+        # Find index of row where first cell matches name
+        row_index = next((i for i, row in enumerate(penalty_info) if row[0] == name), None)
+        if row_index is not None:
+            # Get current value in B column
+            try:
+                current_value = int(penalty_info[row_index][1])
+            except (IndexError, ValueError):
+                current_value = 0
+                
+            # Update value
+            new_value = current_value + count
+            
+            # Update cell in spreadsheet
+            penalty_sheet.values().update(
+                spreadsheetId=penalty_sheet_id,
+                range=f"B{row_index + 1}",
+                valueInputOption="RAW",
+                body={"values": [[new_value]]}
+            ).execute()
+        
+    print("Sakot lisätty!")
+
+def check_present(sheet_service, meeting_number):
+    # Load results of form
+    inhibited_sheet = sheet_service.spreadsheets()
+    sheet_result = (
+        inhibited_sheet.values()
+        .get(spreadsheetId="1rjk41WD8mjdIXPCfyQkOmqeSGIPO0br2sFAX4Ks3DRQ", range="A:D")
+        .execute()
+    )
+    inhibited_info = sheet_result["values"]
+
+    # Pad all rows to a length of 4
+    inhibited_info = [sublist + [""] * (4 - len(sublist)) for sublist in inhibited_info]
+
+    # Add all permanently inhibited to list
+    inhibited_persons = []
+    permanently_inhibited = [x[1] for x in inhibited_info if x[2] == "Nykyisen lukukauden ajaksi"]
+    for person in permanently_inhibited:
+        inhibited_persons.append(person)
+
+    # Add all that are inhibited from specific meeting
+    number_lookup = [meeting_number, f"0{meeting_number}", f"0{meeting_number}/2025"]
+    inhibited_from_meeting = [x[1] for x in inhibited_info if x[3] in number_lookup]
+    for person in inhibited_from_meeting:
+        inhibited_persons.append(person)
+    
+    return inhibited_persons
 
 
 def create_agenda(drive_service, sheet_service, doc_service) -> int:
@@ -249,21 +405,21 @@ def create_agenda(drive_service, sheet_service, doc_service) -> int:
 def publish_agenda(drive_service, sheet_service, doc_service) -> int:
     # Get meeting information from spreadsheet
     current_week = datetime.date.today().isocalendar().week
-    meeting_week = current_week + 1
+    meeting_week = current_week
     info_sheet = sheet_service.spreadsheets()
     sheet_result = (
         info_sheet.values()
-        .get(spreadsheetId="1nS0NjD0YIfj1OxszkGOaOwHLgRsnkcc3FOExrKlQK5I", range="A:G")
+        .get(spreadsheetId="1nS0NjD0YIfj1OxszkGOaOwHLgRsnkcc3FOExrKlQK5I", range="A:H")
         .execute()
     )
     meeting_info = sheet_result["values"]
 
     # Get meeting information corresponding to week number
     next_meeting_data = next(data_list for data_list in meeting_info if data_list[0] == str(meeting_week))
-    meeting_number = int(next_meeting_data[1])
+    meeting_number = str(int(next_meeting_data[1])).zfill(2)
     
     # Find id of agenda relating to meeting number
-    agenda_search = drive_service.files().list(fields="files(id, name)", q=f"name = 'Esityslista {meeting_number}/2025' and trashed = false").execute()
+    agenda_search = drive_service.files().list(fields="files(id, name)", supportsAllDrives=True, corpora="allDrives", includeItemsFromAllDrives=True, q=f"name = 'Esityslista {meeting_number}/2025' and trashed = false").execute()
     result = agenda_search.get("files", [])
     
     if len(result) > 1:
@@ -278,3 +434,65 @@ def publish_agenda(drive_service, sheet_service, doc_service) -> int:
     agenda_contents = agenda_doc["body"]["content"]
 
     distribute_agenda_penalties(agenda_contents, sheet_service)
+
+    inhibited_list = check_present(sheet_service, meeting_number)
+
+    if len(inhibited_list) > 1:
+        names = ", ".join(inhibited_list[:-1]) + " and " + inhibited_list[-1]
+    elif inhibited_list:  # Handle a single name
+        names = inhibited_list[0]
+    else:  # Handle an empty list
+        names = ""
+
+    requests = [{'replaceAllText': {'replaceText': names, "containsText": {"text": "Estyneisyydestä ovat ilmoittaneet …", "matchCase": False}}}]
+
+    # Execute the replace command for the agenda
+    document = (
+        doc_service.documents()
+        .batchUpdate(documentId=agenda_id, body={'requests': requests})
+        .execute()
+    )
+
+
+def check_proceedings(drive_service, sheet_service, doc_service):
+    meeting_number = str(input("\nAnna kokouksen numero: "))
+    meeting_number = meeting_number.zfill(2)
+
+    # Find id of agenda relating to meeting number
+    proceedings_search = drive_service.files().list(fields="files(id, name)", supportsAllDrives=True, corpora="allDrives", includeItemsFromAllDrives=True, q=f"name = 'Kokous {meeting_number}/2025' and trashed = false").execute()
+    result = proceedings_search.get("files", [])
+    
+    if len(result) > 1:
+        ValueError("Multiple proceedings files found!")
+
+    proceedings_id = result[0]['id']
+
+    # Get agenda file
+    proceedings_doc = doc_service.documents().get(documentId=proceedings_id).execute()
+    
+    # Get inhibited persons
+    proceedings_contents = proceedings_doc["body"]["content"]
+    num_lines = len(proceedings_contents)
+    for i in range(num_lines):
+        try:
+            if "Estyneisyysilmoitukset" in proceedings_contents[i]["paragraph"]["elements"][0]["textRun"]["content"]:
+                inhibited_persons = proceedings_contents[i+1]["paragraph"]["elements"][0]["textRun"]["content"]
+        except:
+            continue
+    
+    # Get persons in attendance
+    in_attendance = []
+    for i in range(7,100):
+        try:
+            if "killan toimihenkilöä" in proceedings_contents[i]["paragraph"]["elements"][0]["textRun"]["content"]: # Reached end
+                break
+            else:
+                paragraph_txt = proceedings_contents[i]["paragraph"]["elements"][0]["textRun"]["content"]
+                paragraph_list = paragraph_txt.split("\x0b")
+                for line in paragraph_list:
+                    if line[0] == "\t":
+                        in_attendance.append(line.split("\t")[1].strip())
+        except:
+            continue
+    
+    distribute_attendance_penalties(in_attendance, inhibited_persons, sheet_service)
